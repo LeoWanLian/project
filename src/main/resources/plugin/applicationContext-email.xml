@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+				http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+				http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<!-- 163邮箱,smtp.163.com -->
+<!-- 		smtp发邮件协议,简单邮件传输协议（Simple Message Transfer Protocol） -->
+<!-- 		pop3收邮件协议,邮局通讯协定第三版（Post Office Protocol 3） -->
+		<!-- admin@163.com 用户名:admin 密码:xxx -->
+		<!-- 4567899@qq.com 用户名: 4567899 密码:0000000qq邮箱独立密码(网页授权密码),是否开启smtp -->
+		<property name="host" value="smtp.qq.com" />
+		<property name="username" value="20972647" />
+		<property name="password" value="aofztoicoyribijj" /> 
+		<property name="javaMailProperties">
+			<props>
+				<!-- 必须进行授权认证，它的目的就是阻止他人任意乱发邮件 -->
+				<prop key="mail.smtp.auth">true</prop>
+				<!-- SMTP加密方式:连接到一个TLS保护连接 -->
+				<prop key="mail.smtp.starttls.enable">true</prop>
+			</props>
+		</property>
+	</bean>
+
+</beans>

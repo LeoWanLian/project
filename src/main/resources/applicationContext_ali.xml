@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+
+
+	xsi:schemaLocation="
+ http://www.springframework.org/schema/beans
+ http://www.springframework.org/schema/beans/spring-beans.xsd
+ http://www.springframework.org/schema/tx
+ http://www.springframework.org/schema/tx/spring-tx.xsd
+ http://www.springframework.org/schema/aop
+ http://www.springframework.org/schema/aop/spring-aop.xsd
+ http://www.springframework.org/schema/context
+ http://www.springframework.org/schema/context/spring-context.xsd
+ http://www.springframework.org/schema/data/jpa 
+ http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+ ">
+	<!-- 注入顺序:jdbc.properties->dataSource->jpa的实体管理工厂EntityManagerFactory->dao->service->junit->action -->
+	<!-- <context:property-placeholder location="classpath:jdbc.properties" 
+		/> -->
+
+<!-- 	<bean id="propertyConfigurer" -->
+<!-- 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"> -->
+<!-- 		<property name="locations"> -->
+<!-- 			<list> -->
+<!-- 				<value>applicationContext.xml</value> -->
+<!-- 			</list> -->
+<!-- 		</property> -->
+<!-- 	</bean> -->
+	<!-- 数据源,连接池 -->
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+		destroy-method="close">
+		<!-- 数据库基本信息配置 -->
+		<property name="url" value="${url}" />
+		<property name="username" value="${username}" />
+		<property name="password" value="${password}" />
+		<property name="driverClassName" value="${driverClassName}" />
+		<property name="filters" value="${filters}" />
+		<!-- 最大并发连接数 -->
+		<property name="maxActive" value="${maxActive}" />
+		<!-- 初始化连接数量 -->
+		<property name="initialSize" value="${initialSize}" />
+		<!-- 配置获取连接等待超时的时间 -->
+		<property name="maxWait" value="${maxWait}" />
+		<!-- 最小空闲连接数 -->
+		<property name="minIdle" value="${minIdle}" />
+		<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+		<property name="timeBetweenEvictionRunsMillis" value="${timeBetweenEvictionRunsMillis}" />
+		<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+		<property name="minEvictableIdleTimeMillis" value="${minEvictableIdleTimeMillis}" />
+		<property name="validationQuery" value="${validationQuery}" />
+		<property name="testWhileIdle" value="${testWhileIdle}" />
+		<property name="testOnBorrow" value="${testOnBorrow}" />
+		<property name="testOnReturn" value="${testOnReturn}" />
+		<property name="maxOpenPreparedStatements" value="${maxOpenPreparedStatements}" />
+		<!-- 打开 removeAbandoned 功能 -->
+		<property name="removeAbandoned" value="${removeAbandoned}" />
+		<!-- 1800 秒，也就是 30 分钟 -->
+		<property name="removeAbandonedTimeout" value="${removeAbandonedTimeout}" />
+		<!-- 关闭 abanded 连接时输出错误日志 -->
+		<property name="logAbandoned" value="${logAbandoned}" />
+		</bean >
+
+		<!-- 配置entityManagerFactory -->
+		<!-- org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter引入默认entityManagerFactory名称 -->
+
+		<bean id="entityManagerFactory"
+			class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+			<!-- 1.注入DataSource -->
+			<property name="dataSource" ref="dataSource" />
+
+			<!-- 2.从哪个包去扫描@Entity，domain包 -->
+			<!-- public void setPackagesToScan(String... packagesToScan) { -->
+			<!-- this.internalPersistenceUnitManager.setPackagesToScan(packagesToScan); -->
+			<!-- } -->
+			<property name="packagesToScan" value="com.leowan.pss.domain" />
+
+			<!-- 3.配置JPA的实现 -->
+			<!-- private JpaVendorAdapter jpaVendorAdapter; -->
+			<property name="jpaVendorAdapter">
+				<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+					<!-- org.springframework.orm.jpa.vendor.AbstractJpaVendorAdapter -->
+
+					<!-- private boolean showSql = false;是否显示sql语句 -->
+					<property name="showSql" value="true" />
+
+					<!-- private boolean generateDdl = false;是否建表 -->
+					<property name="generateDdl" value="false" />
+
+					<!-- private String databasePlatform;原来方言 -->
+					<property name="databasePlatform" value="org.hibernate.dialect.MySQLDialect" />
+				</bean>
+			</property>
+
+			<!-- 添加额外的Hibernate配置信息 -->
+			<!-- public void setJpaProperties(Properties jpaProperties) { -->
+			<property name="jpaProperties">
+				<value>
+					hibernate.format_sql=false
+					hibernate.cache.use_second_level_cache=true
+					hibernate.cache.use_query_cache=true
+					hibernate.cache.region.factory_class=org.hibernate.cache.ehcache.EhCacheRegionFactory
+					<!-- <shared-cache-mode>ENABLE_SELECTIVE</shared-cache-mode> -->
+					javax.persistence.sharedCache.mode=ENABLE_SELECTIVE
+				</value>
+			</property>
+		</bean>
+
+		<!-- Spring Data Jpa配置 ******************************************** -->
+		<!-- base-package:扫描的包 -->
+		<!-- repository-impl-postfix:仓库自定义实现类型的后缀 自动扫描并添加到接口的实现 -->
+		<!-- factory-class 仓库接口的实现工厂 -->
+		<jpa:repositories base-package="com.leowan.pss.repository"
+			repository-impl-postfix="Impl"
+			factory-class="com.leowan.pss.repository.BaseRepositoryFactoryBean"
+			transaction-manager-ref="transactionManager"
+			entity-manager-factory-ref="entityManagerFactory" />
+
+		<!-- 扫描dao、service、action组件 -->
+		<!-- 可以处理@Repository, @Service, and @Controller,@Autowired,@PersistenceContext注解 -->
+		<context:component-scan base-package="com.leowan.pss" />
+
+		<!-- 配置事务管理器 -->
+		<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+			<property name="entityManagerFactory" ref="entityManagerFactory" />
+		</bean>
+		<!-- 开启注解事务管理 ，解析@Transactional事务注解 -->
+		<!-- transaction-manager="transactionManager"默认找bean.id=transactionManager事务管理器 -->
+		<tx:annotation-driven />
+
+		<!-- 注解aop -->
+		<aop:aspectj-autoproxy proxy-target-class="true" />
+
+		<!-- 使用OpenSymphony Quartz 任务调度 任务调度/定时调度 -->
+		<import resource="classpath:/plugin/applicationContext-*.xml" />
+</beans>

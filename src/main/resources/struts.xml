@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+
+	<constant name="struts.enable.DynamicMethodInvocation" value="false" />
+	<constant name="struts.devMode" value="true" />
+
+	<!-- 支持国际化: value:资源文件的基本名词 -->
+	<constant name="struts.custom.i18n.resources" value="app" />
+
+	<!-- 修改国际化控制为中文环境，必须停止tomcat，在添加(因为只有唯一一次加载机会) -->
+	<constant name="struts.locale" value="zh_CN" />
+
+	<!-- struts2的标签显示问题 -->
+	<constant name="struts.ui.theme" value="simple"></constant>
+
+	<!-- struts.action.extension=action,, 写.action后缀可以访问，不写也可以访问 -->
+	<!-- 防止*.css,*.js,*.png访问OpenEntityManagerInViewFilter -->
+	<!-- 以下配置就必须添加.action后缀才可以访问xxxAction -->
+	<constant name="struts.action.extension" value="action" />
+
+	<package name="default" namespace="/" extends="struts-default,json-default">
+		<!-- <interceptor-ref name="params"> -->
+		<!-- <param name="excludeParams">^action:.*,^method:.*</param> -->
+		<!-- </interceptor-ref> -->
+
+		<!-- 配置自定义的权限拦截器 -->
+		<interceptors>
+			<interceptor name="authInterceptor"
+				class="com.leowan.pss.web.interceptor.AuthInterceptor">
+				<!-- 参数是不需要拦截的action -->
+				<param name="excludeActions">LoginAction,ImageAction</param>
+			</interceptor>
+			<!-- 自定义权限拦截器栈 -->
+			<interceptor-stack name="pssStack">
+				<!-- 引入自定义的拦截器 -->
+				<interceptor-ref name="authInterceptor" />
+				<!-- 引入二次参数绑定拦截器 -->
+				<interceptor-ref name="paramsPrepareParamsStack" />
+			</interceptor-stack>
+		</interceptors>
+
+		<!-- 修改默认的拦截器栈为自定义的拦截器栈 -->
+		<default-interceptor-ref name="pssStack" />
+
+		<!-- 配置全局的login结果视图 -->
+		<global-results>
+			<!-- 视图名称login，显示登录页面 -->
+			<result name="login">/WEB-INF/views/login.jsp</result>
+			<!-- 重定向 main 后台主页 -->
+			<result name="main" type="redirectAction">main</result>
+			<result name="notAuth">/WEB-INF/views/notAuth.jsp</result>
+			<result name="download" type="stream">
+				<!-- 下载文件的类型 -->
+				<!-- 在tomcat的conf/web.xml里面定义了所有tomcat支持的文件类型 -->
+				<param name="contentType">application/vnd.openxmlformats-officedocument.spreadsheetml.sheet</param>
+				<!-- 在action里面用getInputStream这个对象来进行下载：默认值inputStream -->
+				<param name="inputName">inputStream</param>
+				<!-- 下载文件的建议名称 -->
+				<param name="contentDisposition">attachment;filename="xxx.xlsx"</param>
+				<!-- 每次下载的缓冲大小 -->
+				<param name="bufferSize">1024</param>
+			</result>
+
+			<result name="json" type="json">
+				<!-- <result-type name="json"属性json的类 class="org.apache.struts2.json.JSONResult"/> -->
+				<!-- 没有配置root属性,输出当前action的get属性的值 -->
+				<!-- 如果配置root属性,只输出root指向的对象 -->
+				<!-- private String root; -->
+				<param name="root">#map</param>
+				<!-- 排除空的属性不输出 -->
+				<!-- private boolean excludeNullProperties = false; -->
+				<param name="excludeNullProperties">true</param>
+			</result>
+		</global-results>
+
+
+		<!-- 后台主页 -->
+		<action name="main_*" class="mainAction" method="{1}">
+			<!-- 员工操作列表 -->
+			<result>/WEB-INF/views/main.jsp</result>
+			<result name="right">/WEB-INF/views/main_right.jsp</result>
+		</action>
+		
+		<!-- 登录的action -->
+		<action name="login_*" class="loginAction" method="{1}">
+			<!-- 返回的视图名称全部配置到全局视图 -->
+		</action>
+
+		<!-- 导入Excel文件的action -->
+		<action name="import" class="importAction">
+			<result>/WEB-INF/views/import.jsp</result>
+		</action>
+
+
+		<action name="*_*" class="{1}Action" method="{2}">
+			<!-- 员工操作列表 -->
+			<result>/WEB-INF/views/{1}/{1}.jsp</result>
+			<!-- 跳转修改页面 -->
+			<result name="input">/WEB-INF/views/{1}/{1}_input.jsp</result>
+			<!-- 订单管理,选择商品页面  方法名和返回值是一致的-->
+			<result name="{2}">/WEB-INF/views/{1}/{1}_{2}.jsp</result>
+			<!-- 提交保存用户跳转为重定向,防止操作重复提交 -->
+			<result name="reload" type="redirectAction">
+				<param name="actionName">{1}</param>
+				<!-- 跳转到哪个命名空间 -->
+				<!-- <param name="namespace">/example</param> -->
+				<!-- 跳转到action的哪个方法 -->
+				<!-- <param name="method">xxx</param> -->
+				<!-- 额外传递的参数 -->
+				<!-- <param name="get提交，参数的名称">参数的值，希望从action的save方法里面获取值</param> -->
+				<param name="baseQuery.currentPage">${baseQuery.currentPage}</param>
+				<param name="baseQuery.pageSize">${baseQuery.pageSize}</param>
+				<param name="baseQuery.username">${baseQuery.username}</param>
+				<param name="baseQuery.email">${baseQuery.email}</param>
+				<param name="id">${id}</param>
+			</result>
+		</action>
+
+	</package>
+
+</struts>

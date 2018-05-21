@@ -1,0 +1,25 @@
+[
+	{
+		"id": 1,
+		"text": "系统管理",
+		"iconCls": "icon-save",
+		"children": [
+			{
+				"text": "菜单管理",
+				"url": "menu.action",
+				"iconCls": "icon-save"
+			}
+		]
+	},
+	{
+		"text": "Languages",
+		"children": [
+			{
+				"text": "Java"
+			},
+			{
+				"text": "C#"
+			}
+		]
+	}
+]  
