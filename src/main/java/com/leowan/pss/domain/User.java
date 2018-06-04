@@ -2,7 +2,7 @@ package com.leowan.pss.domain;
 
 public class User {
     private String name;
-    private Integer age;
+    private Long age;
 
     public String getName() {
         return name;
@@ -12,11 +12,11 @@ public class User {
         this.name = name;
     }
 
-    public Integer getAge() {
+    public Long getAge() {
         return age;
     }
 
-    public void setAge(Integer age) {
+    public void setAge(Long age) {
         this.age = age;
     }
 }
