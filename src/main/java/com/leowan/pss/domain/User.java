@@ -17,6 +17,11 @@ public class User {
     }
 
     public void setAge(Long age) {
+
         this.age = age;
+    }
+
+    public void add(){
+        System.out.println("leowan");
     }
 }
